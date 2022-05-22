@@ -1,6 +1,7 @@
 from cProfile import label
 import imp
 from shelve import Shelf
+from statistics import mean
 import tkinter
 from venv import create
 import pygame
@@ -11,11 +12,12 @@ from tkinter import messagebox
 from PIL import Image, ImageTk
 import sys
 sys.path.append("/home/danan/item/flash-demo/utils")
+sys.path.append("/home/danan/item/flash-demo/src")
 
 from config import Config
 from playbgm import playbgm
 from check import check
-
+from menu import create_menu
 
 
 '''记忆翻牌小游戏'''
@@ -40,24 +42,22 @@ class FlipCardByMemoryGame():
         # TODO:grid布局
         self.guest_login_button = Button(self.login_window, text="游客登录", command=self.create_game_window)
         self.guest_login_button.pack()
+    
+    '''help function'''
+    def help(self):
+        print('000000')
 
     '''游戏界面'''
     # TODO:游戏菜单
     def create_game_window(self):
-        print('111')
-
 
         self.login_window.destroy()
         # self.root = Toplevel(self.login_window)
         self.root = Tk()
-        self.main_menu = Menu(self.root)
-        # TODO:排行榜页面
-        self.main_menu.add_command (label="选择难度",command=self.menuCommand)
-        self.main_menu.add_command (label="查看排行榜",command=self.menuCommand)
-        self.root.config(menu=self.main_menu)
+
+        # 创建菜单
+        create_menu(self)
         cfg = self.cfg
-        # 卡片图片路径
-        self.card_dir = random.choice(cfg.IMAGEPATHS['carddirs'])
         # 播放背景音乐
         playbgm(self)
         # 载入得分后响起的音乐
@@ -68,9 +68,7 @@ class FlipCardByMemoryGame():
         self.score_sound.set_volume(1)
         # 卡片图片路径
         self.card_dir = random.choice(cfg.IMAGEPATHS['carddirs'])
-        # # 主界面句柄
-        # self.root = Tk()
-        # self.root.title('Flip Card by Memory')
+        self.root.title('Flip Card by Memory')
         # 游戏界面中的卡片字典
         self.game_matrix = {}
         # 背景图像
@@ -87,6 +85,8 @@ class FlipCardByMemoryGame():
                 self.game_matrix[position] = Label(self.root, image=self.cards_back_image)
                 self.game_matrix[position].back_image = self.cards_back_image
                 self.game_matrix[position].file = str(cards_list[r * 4 + c])
+                print("SHOW: r is {}, r * 4 is {}, c is {}, r * 4 + c is {}".format(r, r * 4, c, r * 4 + c))
+                print("DEBUG:{}".format(self.game_matrix[position].file))
                 self.game_matrix[position].show = False
                 self.game_matrix[position].bind('<Button-1>', self.clickcallback)
                 self.game_matrix[position].grid(row=r, column=c)
@@ -216,12 +216,13 @@ class FlipCardByMemoryGame():
         else:
             is_restart = messagebox.askyesno('Game Over', 'You fail since time up, do you want to play again?')
             if is_restart: self.restart()
-            else: self.login_window.destroy()
+            else: self.root.destroy()
 
         '''重新开始游戏'''
     def restart(self):
-        self.login_window.destroy()
+        self.root.destroy()
         client = FlipCardByMemoryGame()
+        # TODO:重新开始的是啥的问题
         client.run()
 
     
