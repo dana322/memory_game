@@ -1,9 +1,11 @@
+from asyncio import constants
 from cProfile import label
-import imp
+from pkgutil import extend_path
 from shelve import Shelf
 from statistics import mean
 import tkinter
 from venv import create
+from xmlrpc.client import boolean
 import pygame
 import os
 import random
@@ -11,13 +13,20 @@ from tkinter import *
 from tkinter import messagebox
 from PIL import Image, ImageTk
 import sys
-sys.path.append("/home/danan/item/flash-demo/utils")
-sys.path.append("/home/danan/item/flash-demo/src")
+rootdir = os.path.split(os.path.abspath(__file__))[0]
+sys.path.append(os.path.join(rootdir, "utils"))
+sys.path.append(os.path.join(rootdir, "src"))
+sys.path.append(os.path.join(rootdir, "constant"))
+print("DEBUG:{}".format(os.path.join(rootdir, "constant")))
+
 
 from config import Config
 from playbgm import playbgm
 from check import check
 from menu import create_menu
+from constant import advanced_constants
+from constant import junior_constants
+from constant import mediate_constants
 
 
 '''记忆翻牌小游戏'''
@@ -40,7 +49,7 @@ class FlipCardByMemoryGame():
         self.entry.pack()
         # 创建游客登录按钮
         # TODO:grid布局
-        self.guest_login_button = Button(self.login_window, text="游客登录", command=self.create_game_window)
+        self.guest_login_button = Button(self.login_window, text="游客登录", command=self.run_junior)
         self.guest_login_button.pack()
     
     '''help function'''
@@ -49,12 +58,18 @@ class FlipCardByMemoryGame():
 
     '''游戏界面'''
     # TODO:游戏菜单
-    def create_game_window(self):
+    def create_game_window(self, image_num = junior_constants.JUNIOR_IMAGE_NUM, line = junior_constants.JUNIOR_LINE, column = junior_constants.JUNIOR_COLUMN, rank = junior_constants.JUNIOR_RANK):
+        try:
+            self.login_window.destroy()
+        except BaseException as err:
+            print(f"Unexpected {err=}, {type(err)=}")
 
-        self.login_window.destroy()
-        # self.root = Toplevel(self.login_window)
+        try:
+            self.root.destroy()
+        except BaseException as err:
+            print(f"Unexpected {err=}, {type(err)=}")
+            
         self.root = Tk()
-
         # 创建菜单
         create_menu(self)
         cfg = self.cfg
@@ -67,7 +82,7 @@ class FlipCardByMemoryGame():
         # set the playback volume for this Sound
         self.score_sound.set_volume(1)
         # 卡片图片路径
-        self.card_dir = random.choice(cfg.IMAGEPATHS['carddirs'])
+        self.card_dir = cfg.IMAGEPATHS['carddirs'][rank]
         self.root.title('Flip Card by Memory')
         # 游戏界面中的卡片字典
         self.game_matrix = {}
@@ -76,16 +91,16 @@ class FlipCardByMemoryGame():
         # 卡片背面
         self.cards_back_image = PhotoImage(data=cfg.IMAGEPATHS['cards_back'])
         # 所有卡片的索引
-        cards_list = list(range(8)) + list(range(8))
+        cards_list = list(range(image_num - 1)) + list(range(image_num - 1))
         random.shuffle(cards_list)
         # 在界面上显示所有卡片的背面
-        for r in range(4):
-            for c in range(4):
+        for r in range(line):
+            for c in range(column):
                 position = f'{r}_{c}'
                 self.game_matrix[position] = Label(self.root, image=self.cards_back_image)
                 self.game_matrix[position].back_image = self.cards_back_image
-                self.game_matrix[position].file = str(cards_list[r * 4 + c])
-                print("SHOW: r is {}, r * 4 is {}, c is {}, r * 4 + c is {}".format(r, r * 4, c, r * 4 + c))
+                self.game_matrix[position].file = str(cards_list[r * line + c])
+                # print("SHOW: r is {}, r * 4 is {}, c is {}, r * 4 + c is {}".format(r, r * 4, c, r * 4 + c))
                 print("DEBUG:{}".format(self.game_matrix[position].file))
                 self.game_matrix[position].show = False
                 self.game_matrix[position].bind('<Button-1>', self.clickcallback)
@@ -112,6 +127,14 @@ class FlipCardByMemoryGame():
 
 
 
+    def run_junior(self):
+        self.create_game_window()
+
+    def run_mediate(self):
+        self.create_game_window(mediate_constants.MEDIATE_IMAGE_NUM, mediate_constants.MEDIATE_LINE, mediate_constants.MEDIATE_COLUMN, mediate_constants.MEDIATE_RANK)
+
+    def run_advanced(self):
+        self.create_game_window(advanced_constants.MEDIATE_IMAGE_NUM, advanced_constants.MEDIATE_LINE, advanced_constants.MEDIATE_COLUMN, advanced_constants.MEDIATE_RANK)
 
     '''运行游戏'''
     def run_game(self):

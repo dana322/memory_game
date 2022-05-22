@@ -8,9 +8,9 @@ def create_menu(self):
     self.choose_difficulty_menu = Menu(self.main_menu, tearoff=False)
     # 难度子菜单
     # TODO:选择难度
-    self.choose_difficulty_menu.add_command(label="初级", command=self.help)
-    self.choose_difficulty_menu.add_command(label="中级", command=self.help)
-    self.choose_difficulty_menu.add_command(label="高级", command=self.help)
+    self.choose_difficulty_menu.add_command(label="初级", command=self.run_junior)
+    self.choose_difficulty_menu.add_command(label="中级", command=self.run_mediate)
+    self.choose_difficulty_menu.add_command(label="高级", command=self.run_advanced)
     self.main_menu.add_cascade(label="选择难度", menu=self.choose_difficulty_menu)
     # 排行榜子菜单
     # TODO: 排行榜

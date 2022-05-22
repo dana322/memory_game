@@ -142,11 +142,11 @@ class Config():
                 'xycw3qRNGUjv/8CgcEgsGo9IoiGHG+kokYl0Sq1ar9isdsvtZiHO5pPC8JrP6LR6urjpxgvHek6vpx1tp44hsfv/gFYSDEwUD4GIiXUPhXKKj5BdDo2RlZZVkxQlIo6XnpCZmxSdn6WBoTqkpqt1qJyssK2UsbR3s7W4kre5vFiuo73BV7+qwsHExskTyMrCzM29z9C50tO11dax2Nms29ym3t+f4eKX5OWV5+igu'
                 '+vj7e7m8PHp8/Tsmqn37/mv+/L9gP2zpG6gnYIG6SBMuGYhQ1sBiz3843CimYoWdUXMiAgjRy0eP/qyJxKiKIklTfvqSylrI0uFJF9qPClzTsiaN2XmfLmTZc+UP0sGFTn0Y1GORzMmtbh0YtOHTxlGTTjVYNWBV/9l3bf1Xld6X+OFdTd2XVl0Z8ulFbf2W1tub7PFtTZ3Wl1od5vlVbY3WV9jf53FrAlyMOGRLg+'
                 'fCXzMsGJMjh9PYRwtsuRlliVT5rWZWubHnXGFvvZZ8Whap7WVPpwaVutuqwm/XjUbXGychQ5d7sIoIAIHUXZjieAAQaERfIRTidAAx5sbCZRPOeBGzIgGELJr3869u/fv4MOLH08efHMSTY6nX8++vfv38OPLdzPGuQkB+PPr38+/v///AAYo4IAB1oBDCAA7',
-        'carddirs': [
-            os.path.join(rootdir, 'resources/images/series1'),
-            os.path.join(rootdir, 'resources/images/series2'),
-            os.path.join(rootdir, 'resources/images/series3'),
-        ],
+        'carddirs': {
+            "junior": os.path.join(rootdir, 'resources/images/junior'),
+            "mediate": os.path.join(rootdir, 'resources/images/mediate'),
+            "advanced": os.path.join(rootdir, 'resources/images/advanced'),
+        },
     }
     # 音乐路径
     AUDIOPATHS = {
