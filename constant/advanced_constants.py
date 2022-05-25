@@ -1,7 +1,7 @@
 # 高级难度名字
-MEDIATE_RANK = 'advanced'
+ADVANCED_RANK = 'advanced'
 # 高级难度所需图片数量
-MEDIATE_IMAGE_NUM = 15
+ADVANCED_IMAGE_NUM = 15
 # 高级难度行列数量
-MEDIATE_LINE = 5
-MEDIATE_COLUMN = 6
+ADVANCED_LINE = 5
+ADVANCED_COLUMN = 6

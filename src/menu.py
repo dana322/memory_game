@@ -14,9 +14,9 @@ def create_menu(self):
     self.main_menu.add_cascade(label="选择难度", menu=self.choose_difficulty_menu)
     # 排行榜子菜单
     # TODO: 排行榜
-    self.rank_menu.add_command(label="初级排行榜", command=self.help)
-    self.rank_menu.add_command(label="中级排行榜", command=self.help)
-    self.rank_menu.add_command(label="高级排行榜", command=self.help)
+    self.rank_menu.add_command(label="初级排行榜", command=self.junior_window)
+    self.rank_menu.add_command(label="中级排行榜", command=self.mediate_window)
+    self.rank_menu.add_command(label="高级排行榜", command=self.advanced_window)
     self.main_menu.add_cascade(label='查看排行榜', menu=self.rank_menu)
     # 显示主菜单
     self.root.config(menu=self.main_menu)

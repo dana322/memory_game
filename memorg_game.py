@@ -2,17 +2,21 @@ from asyncio import constants
 from cProfile import label
 from pkgutil import extend_path
 from shelve import Shelf
+from shutil import which
 from statistics import mean
 import tkinter
 from venv import create
 from xmlrpc.client import boolean
 from colorama import Cursor
+from kiwisolver import Expression
+from numpy import insert
 import pygame
 import os
 import random
 from tkinter import *
 from tkinter import messagebox
 from PIL import Image, ImageTk
+import pymysql
 import sys
 rootdir = os.path.split(os.path.abspath(__file__))[0]
 sys.path.append(os.path.join(rootdir, "utils"))
@@ -23,25 +27,24 @@ sys.path.append(os.path.join(rootdir, "constant"))
 
 from config import Config
 from playbgm import playbgm
-from check import check
 from menu import create_menu
 from constant import advanced_constants
 from constant import junior_constants
 from constant import mediate_constants
-from db import db_excute
-
+from rank import ranking_window
 
 '''记忆翻牌小游戏'''
 class FlipCardByMemoryGame():
     def __init__(self):
         self.cfg = Config
         self.create_login_window()
-        # 计时器flag
-        self.is_first_click = 0
-        # cursor = db_excute()
-        # cursor.execute("select version()")
-        # data = cursor.fetchone()
-        # print(data)
+
+        # 数据库
+        self.db = pymysql.connect(host='localhost', port=3306, user='debian-sys-maint', passwd='123456', database='ranking')
+        self.db_cursor = self.db.cursor()
+
+        # 难度标识 0 初级 1 中级 2 高级
+        self.which_game = 0
 
     def create_login_window(self):
         # 主界面句柄
@@ -52,16 +55,32 @@ class FlipCardByMemoryGame():
         self.login_window.geometry('450x300')
         # 新建文本标签
         # TODO: 用户名
-        self.username = Label(self.login_window, text = "用户名：")
-        self.username.pack()
+        self.username = Label(self.login_window)
         # 创建动字符串
+        self.entry = Entry(self.login_window)
         Dy_String = StringVar()
-        self.entry = Entry(self.login_window,textvariable =Dy_String,validate ="focusout",validatecommand= check)
+        self.entry["textvariable"] = Dy_String
+        self.login_button = Button(self.login_window, text="登录", command=self.login_click_callback)
+        self.entry.focus()
         self.entry.pack()
+        self.username.pack(side='left')
+        self.login_button.pack(side='right')
+        self.login_window.update()
+
+        # print("SHOW:{}".format(Dy_String.get()))
+        # Dy_String = StringVar()
+        # self.entry2 = Entry(self.login_window,textvariable =Dy_String,validate ="none",validatecommand= self.check)
+        # self.entry2.pack()
+        # 登录按钮
+        self.login_button.pack()
+
         # 创建游客登录按钮
         # TODO:grid布局
+        # TODO: runjunior
         self.guest_login_button = Button(self.login_window, text="游客登录", command=self.run_junior)
         self.guest_login_button.pack()
+
+        
         # 居中显示
         # TODO: login居中显示
         self.login_window.withdraw()
@@ -87,7 +106,10 @@ class FlipCardByMemoryGame():
             self.root.destroy()
         except BaseException as err:
             print(f"Unexpected {err=}, {type(err)=}")
-            
+
+        # 计时器flag
+        self.is_first_click = 0
+
         self.root = Tk()
         # 创建菜单
         create_menu(self)
@@ -122,7 +144,7 @@ class FlipCardByMemoryGame():
                 self.game_matrix[position].back_image = self.cards_back_image
                 # r*colmn+c生成0-cards_num个数
                 self.game_matrix[position].file = str(cards_list[r * column + c])
-                print("SHOW:{}".format(self.game_matrix[position].file))
+                # print("SHOW:{}".format(self.game_matrix[position].file))
                 # print("SHOW: r is {}, r * column is {}, c is {}, r * colume + c is {}".format(r, r * column, c, r * column + c))
                 # print("DEBUG:{}".format(self.game_matrix[position].file))
                 self.game_matrix[position].show = False
@@ -137,7 +159,11 @@ class FlipCardByMemoryGame():
         self.time = Label(self.root, text=f'Time Left: {self.num_seconds}')
         self.time.grid(row=line + 1, column=column - 1, columnspan=2)
         # 显示用户
-        self.user_name = '游客'
+        self.user_name = ''
+        try:
+            self.user_name = self.input_name
+        except:
+            self.user_name = '游客'
         self.greet = Label(self.root, text=f'欢迎你! {self.user_name}')
         self.greet.grid(row=line + 1, column=0)
         # 居中显示
@@ -154,17 +180,39 @@ class FlipCardByMemoryGame():
 
     # 把几个run规范一下
     def run_junior(self):
+        self.which_game = 0
         self.create_game_window()
 
     def run_mediate(self):
+        self.which_game = 1
         self.create_game_window(mediate_constants.MEDIATE_IMAGE_NUM, mediate_constants.MEDIATE_LINE, mediate_constants.MEDIATE_COLUMN, mediate_constants.MEDIATE_RANK)
 
     def run_advanced(self):
-        self.create_game_window(advanced_constants.MEDIATE_IMAGE_NUM, advanced_constants.MEDIATE_LINE, advanced_constants.MEDIATE_COLUMN, advanced_constants.MEDIATE_RANK)
+        self.which_game = 2
+        self.create_game_window(advanced_constants.ADVANCED_IMAGE_NUM, advanced_constants.ADVANCED_LINE, advanced_constants.ADVANCED_COLUMN, advanced_constants.ADVANCED_RANK)
 
     '''运行游戏'''
     def run_game(self):
         self.root.mainloop()
+    
+    def rander_window(self, rank):
+        try:
+            print(f"select * from '{rank}'")
+            self.db_cursor.execute(f"select * from {rank} order by score desc limit 10")
+            data = self.db_cursor.fetchall()
+            ranking_window(self, data)
+        except:
+            print('error')
+
+    def junior_window(self):
+        self.rander_window('junior_ranking')
+    
+    def mediate_window(self):
+        self.rander_window('mediate_ranking')
+    
+    def advanced_window(self):
+        self.rander_window('advanced_ranking')
+
 
     '''运行程序'''
     def run(self):
@@ -175,8 +223,8 @@ class FlipCardByMemoryGame():
     def clickcallback(self, event):
         # 第一次点击任意卡片，计时器开始
         if self.is_first_click == 0:
-            self.tick()
             self.is_first_click = 1
+            self.tick()
         card = event.widget
         # print(card)
         if card.show: 
@@ -255,24 +303,53 @@ class FlipCardByMemoryGame():
                 self.shown_cards[-1].show_image = image
                 self.shown_cards[-1].show = True
         # 判断游戏是否已经胜利
-        print("existing cards:{}".format(self.num_existing_cards))
+        # print("existing cards:{}".format(self.num_existing_cards))
         if self.num_existing_cards == 0:
+            self.insert_grade()
             is_restart = messagebox.askyesno('Game Over', 'Congratulations, you win, do you want to play again?')
             if is_restart: self.restart()
             else: self.root.destroy()
+    
+    '''插入成绩'''
+    def insert_grade(self):
+        time = str(self.num_seconds)
+        try:
+            if self.which_game == 0:
+                self.db_cursor.execute(f"insert into junior_ranking values(null, '{time}', '{self.user_name}');")
+            elif self.which_game == 1:
+                self.db_cursor.execute(f"insert into mediate_ranking values(null, '{time}', '{self.user_name}');")
+            elif self.which_game == 2:
+                self.db_cursor.execute(f"insert into advanced_ranking values(null, '{time}', '{self.user_name}');")
+            self.db.commit()
+        except:
+            self.db.rollback()
+    
     '''计时'''
-
-
     def tick(self):
+        # print(111)
         if self.num_existing_cards == 0: return
+        # print(222)
         self.num_seconds += 1
         self.time['text'] = f'Time Left: {self.num_seconds}'
         self.time.after(1000, self.tick)
+        
 
         '''重新开始游戏'''
+    
     def restart(self):
         self.root.destroy()
         client = FlipCardByMemoryGame().run_junior()
+
+    '''检查'''
+    def login_click_callback(self):
+        if 0 < len(self.entry.get()) <= 8:
+            self.input_name = self.entry.get()
+            self.run_junior()
+            return True
+        else:
+            messagebox.showwarning("输入不正确")
+            self.entry.delete(0, tkinter.END)
+            return False
 
     
 a = FlipCardByMemoryGame()
