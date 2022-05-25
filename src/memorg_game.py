@@ -1,29 +1,18 @@
-from asyncio import constants
-from cProfile import label
-from pkgutil import extend_path
-from shelve import Shelf
-from shutil import which
-from statistics import mean
 import tkinter
-from venv import create
-from xmlrpc.client import boolean
-from colorama import Cursor
-from kiwisolver import Expression
-from numpy import insert
 import pygame
-import os
-import random
 from tkinter import *
 from tkinter import messagebox
 from PIL import Image, ImageTk
 import pymysql
+
 import sys
+import os
+import random
+
 rootdir = os.path.split(os.path.abspath(__file__))[0]
 sys.path.append(os.path.join(rootdir, "utils"))
 sys.path.append(os.path.join(rootdir, "src"))
 sys.path.append(os.path.join(rootdir, "constant"))
-# print("DEBUG:{}".format(os.path.join(rootdir, "constant")))
-
 
 from config import Config
 from playbgm import playbgm
@@ -36,7 +25,9 @@ from rank import ranking_window
 '''记忆翻牌小游戏'''
 class FlipCardByMemoryGame():
     def __init__(self):
+        '''构造方法'''
         self.cfg = Config
+        # 创建登录窗口
         self.create_login_window()
 
         # 数据库
@@ -47,42 +38,36 @@ class FlipCardByMemoryGame():
         self.which_game = 0
 
     def create_login_window(self):
+        '''创建登录窗口'''
         # 主界面句柄
         self.login_window = Tk()
-        self.login_window.title('Flip Card by Memory')   
-        # TODO: 图标
-        # self.login_window.iconbitmap('/home/danan/item/demo/resources/cat.ico') 
+        # 窗口名字
+        self.login_window.title('Flip Card by Memory')  
+        # 不可拖动窗口 
+        self.login_window.resizable(0, 0)
+        # 窗口大小
         self.login_window.geometry('450x300')
-        # 新建文本标签
-        # TODO: 用户名
-        self.username = Label(self.login_window)
-        # 创建动字符串
+        username = Label(self.login_window, text='用户名:', width=10)
+        # 创建动字符串 和entry控件
         self.entry = Entry(self.login_window)
         Dy_String = StringVar()
         self.entry["textvariable"] = Dy_String
-        self.login_button = Button(self.login_window, text="登录", command=self.login_click_callback)
-        self.entry.focus()
-        self.entry.pack()
-        self.username.pack(side='left')
-        self.login_button.pack(side='right')
-        self.login_window.update()
-
-        # print("SHOW:{}".format(Dy_String.get()))
-        # Dy_String = StringVar()
-        # self.entry2 = Entry(self.login_window,textvariable =Dy_String,validate ="none",validatecommand= self.check)
-        # self.entry2.pack()
         # 登录按钮
-        self.login_button.pack()
+        login_button = Button(self.login_window, text="登录", command=self.login_click_callback)
 
         # 创建游客登录按钮
-        # TODO:grid布局
-        # TODO: runjunior
         self.guest_login_button = Button(self.login_window, text="游客登录", command=self.run_junior)
-        self.guest_login_button.pack()
 
+        # 布局 
+        username.place(x=80, y=100)
+        self.entry.place(x=150, y=100)
+        login_button.place(x=130, y=150)
+        self.guest_login_button.place(x=190, y=150)
+
+        # login窗口刷新，获取用户输入
+        self.login_window.update()
         
-        # 居中显示
-        # TODO: login居中显示
+        # 窗口显示位置
         self.login_window.withdraw()
         self.login_window.update_idletasks()
         x = (self.login_window.winfo_screenwidth() - self.login_window.winfo_reqwidth()) / 2
@@ -90,18 +75,15 @@ class FlipCardByMemoryGame():
         self.login_window.geometry('+%d+%d' % (x, y))
         self.login_window.deiconify()
     
-    '''help function'''
-    def help(self):
-        print('000000')
 
-    '''游戏界面'''
-    # TODO:游戏菜单
     def create_game_window(self, image_num = junior_constants.JUNIOR_IMAGE_NUM, line = junior_constants.JUNIOR_LINE, column = junior_constants.JUNIOR_COLUMN, rank = junior_constants.JUNIOR_RANK):
+        '''游戏界面'''
+
+        # 如果有窗口在运行，销毁
         try:
             self.login_window.destroy()
         except BaseException as err:
             print(f"Unexpected {err=}, {type(err)=}")
-
         try:
             self.root.destroy()
         except BaseException as err:
@@ -109,22 +91,23 @@ class FlipCardByMemoryGame():
 
         # 计时器flag
         self.is_first_click = 0
-
+        
+        # 窗口句柄
         self.root = Tk()
+        # 不可拖动窗口
+        self.root.resizable(0, 0)
         # 创建菜单
         create_menu(self)
         cfg = self.cfg
+
         # 播放背景音乐
         playbgm(self)
         # 载入得分后响起的音乐
-        # Create a new Sound object from a file or buffer object
-        # Sound(filename) -> Sound
         self.score_sound = pygame.mixer.Sound(cfg.AUDIOPATHS['score'])
-        # set the playback volume for this Sound
         self.score_sound.set_volume(1)
+
         # 卡片图片路径
         self.card_dir = cfg.IMAGEPATHS['carddirs'][rank]
-        print(self.card_dir)
         self.root.title('Flip Card by Memory')
         # 游戏界面中的卡片字典
         self.game_matrix = {}
@@ -134,8 +117,8 @@ class FlipCardByMemoryGame():
         self.cards_back_image = PhotoImage(data=cfg.IMAGEPATHS['cards_back'])
         # 所有卡片的索引
         cards_list = list(range(image_num)) + list(range(image_num))
-        print("cardlist{}".format(cards_list))
         random.shuffle(cards_list)
+
         # 在界面上显示所有卡片的背面
         for r in range(line):
             for c in range(column):
@@ -144,20 +127,20 @@ class FlipCardByMemoryGame():
                 self.game_matrix[position].back_image = self.cards_back_image
                 # r*colmn+c生成0-cards_num个数
                 self.game_matrix[position].file = str(cards_list[r * column + c])
-                # print("SHOW:{}".format(self.game_matrix[position].file))
-                # print("SHOW: r is {}, r * column is {}, c is {}, r * colume + c is {}".format(r, r * column, c, r * column + c))
-                # print("DEBUG:{}".format(self.game_matrix[position].file))
                 self.game_matrix[position].show = False
                 self.game_matrix[position].bind('<Button-1>', self.clickcallback)
                 self.game_matrix[position].grid(row=r, column=c)
+
         # 已经显示正面的卡片
         self.shown_cards = []
         # 场上存在的卡片数量
         self.num_existing_cards = len(cards_list)
+
         # 显示游戏时间
         self.num_seconds = 0
         self.time = Label(self.root, text=f'Time Left: {self.num_seconds}')
         self.time.grid(row=line + 1, column=column - 1, columnspan=2)
+
         # 显示用户
         self.user_name = ''
         try:
@@ -166,6 +149,7 @@ class FlipCardByMemoryGame():
             self.user_name = '游客'
         self.greet = Label(self.root, text=f'欢迎你! {self.user_name}')
         self.greet.grid(row=line + 1, column=0)
+
         # 居中显示
         self.root.withdraw()
         self.root.update_idletasks()
@@ -173,31 +157,36 @@ class FlipCardByMemoryGame():
         y = (self.root.winfo_screenheight() - self.root.winfo_reqheight()) / 2
         self.root.geometry('+%d+%d' % (x, y))
         self.root.deiconify()
+
         # 显示主界面
         self.run_game()
 
-
-
-    # 把几个run规范一下
     def run_junior(self):
+        '''运行初级游戏'''
         self.which_game = 0
         self.create_game_window()
 
     def run_mediate(self):
+        '''运行中级游戏'''
         self.which_game = 1
         self.create_game_window(mediate_constants.MEDIATE_IMAGE_NUM, mediate_constants.MEDIATE_LINE, mediate_constants.MEDIATE_COLUMN, mediate_constants.MEDIATE_RANK)
 
     def run_advanced(self):
+        '''运行高级游戏'''
         self.which_game = 2
         self.create_game_window(advanced_constants.ADVANCED_IMAGE_NUM, advanced_constants.ADVANCED_LINE, advanced_constants.ADVANCED_COLUMN, advanced_constants.ADVANCED_RANK)
 
-    '''运行游戏'''
     def run_game(self):
+        '''显示游戏主界面'''
         self.root.mainloop()
-    
+
+    def run(self):
+        '''显示登录页面的主界面'''
+        self.login_window.mainloop()
+
     def rander_window(self, rank):
+        '''渲染排行榜界面，查询数据库数据放入界面中'''
         try:
-            print(f"select * from '{rank}'")
             self.db_cursor.execute(f"select * from {rank} order by score desc limit 10")
             data = self.db_cursor.fetchall()
             ranking_window(self, data)
@@ -205,19 +194,16 @@ class FlipCardByMemoryGame():
             print('error')
 
     def junior_window(self):
+        '''渲染初级排行榜'''
         self.rander_window('junior_ranking')
     
     def mediate_window(self):
+        '''渲染中级排行榜'''
         self.rander_window('mediate_ranking')
     
     def advanced_window(self):
+        '''渲染高级排行榜'''
         self.rander_window('advanced_ranking')
-
-
-    '''运行程序'''
-    def run(self):
-        # 显示主界面
-        self.login_window.mainloop()
 
     '''点击回调函数'''
     def clickcallback(self, event):
@@ -226,7 +212,6 @@ class FlipCardByMemoryGame():
             self.is_first_click = 1
             self.tick()
         card = event.widget
-        # print(card)
         if card.show: 
             return
         # 之前没有卡片被翻开
@@ -303,7 +288,6 @@ class FlipCardByMemoryGame():
                 self.shown_cards[-1].show_image = image
                 self.shown_cards[-1].show = True
         # 判断游戏是否已经胜利
-        # print("existing cards:{}".format(self.num_existing_cards))
         if self.num_existing_cards == 0:
             self.insert_grade()
             is_restart = messagebox.askyesno('Game Over', 'Congratulations, you win, do you want to play again?')
@@ -326,22 +310,21 @@ class FlipCardByMemoryGame():
     
     '''计时'''
     def tick(self):
-        # print(111)
         if self.num_existing_cards == 0: return
-        # print(222)
         self.num_seconds += 1
         self.time['text'] = f'Time Left: {self.num_seconds}'
         self.time.after(1000, self.tick)
         
-
-        '''重新开始游戏'''
-    
     def restart(self):
+        '''重新运行游戏'''
         self.root.destroy()
-        client = FlipCardByMemoryGame().run_junior()
+        FlipCardByMemoryGame().run_junior()
 
-    '''检查'''
     def login_click_callback(self):
+        '''登录按钮的回调函数
+            1.检查用户输入名字是否合法, 0 < 用户名长度 <= 8 
+            2.如果合法,进入游戏
+        '''
         if 0 < len(self.entry.get()) <= 8:
             self.input_name = self.entry.get()
             self.run_junior()
@@ -351,6 +334,5 @@ class FlipCardByMemoryGame():
             self.entry.delete(0, tkinter.END)
             return False
 
-    
-a = FlipCardByMemoryGame()
-a.run()
+
+
