@@ -187,6 +187,7 @@ class FlipCardByMemoryGame():
     def rander_window(self, rank):
         '''渲染排行榜界面，查询数据库数据放入界面中'''
         try:
+            # TODO: 排序
             self.db_cursor.execute(f"select * from {rank} order by score desc limit 10")
             data = self.db_cursor.fetchall()
             ranking_window(self, data)
