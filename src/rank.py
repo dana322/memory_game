@@ -13,12 +13,12 @@ def ranking_window(self, data):
       score = data[i][1]
       name = data[i][2]
       label_id = tkinter.Label(ranking_window, text=i + 1, width=5)
-      label_name = tkinter.Label(ranking_window, text=name, width=10)
+      label_name = tkinter.Label(ranking_window, text=name, width=15, anchor='nw')
       label_score = tkinter.Label(ranking_window, text=score, width=10)
       label_id.grid(row=i, column=0)
       label_name.grid(row=i, column=1)
       label_score.grid(row=i, column=2)
-      
+
    # 窗口显示位置
    ranking_window.withdraw()
    ranking_window.update_idletasks()
