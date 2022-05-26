@@ -31,7 +31,7 @@ class FlipCardByMemoryGame():
         self.create_login_window()
 
         # 数据库
-        self.db = pymysql.connect(host='localhost', port=3306, user='debian-sys-maint', passwd='123456', database='ranking')
+        self.db = pymysql.connect(host='x.xx.xx.xx', port=3306, user='xx', passwd='xxx', database='ranking')
         self.db_cursor = self.db.cursor()
 
         # 难度标识 0 初级 1 中级 2 高级
@@ -187,8 +187,7 @@ class FlipCardByMemoryGame():
     def rander_window(self, rank):
         '''渲染排行榜界面，查询数据库数据放入界面中'''
         try:
-            # TODO: 排序
-            self.db_cursor.execute(f"select * from {rank} order by score desc limit 10")
+            self.db_cursor.execute(f"select * from {rank} order by (score + 0)  limit 10")
             data = self.db_cursor.fetchall()
             ranking_window(self, data)
         except:
