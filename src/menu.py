@@ -34,4 +34,4 @@ def create_menu(self):
     self.root.config(menu=self.main_menu)
 
 def warn():
-    messagebox.showwarning("登录选择难度")
+    messagebox.showwarning(title='warning', message='登录后选择难度')

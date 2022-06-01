@@ -372,7 +372,7 @@ class FlipCardByMemoryGame():
             self.run_junior()
             return True
         else:
-            messagebox.showwarning("输入不正确")
+            messagebox.showwarning(title='用户名错误', message='用户名长度必须在1到8个字符之间')
             self.entry.delete(0, tkinter.END)
             return False
             
