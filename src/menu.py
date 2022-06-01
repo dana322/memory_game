@@ -1,4 +1,6 @@
+import imp
 from tkinter import Menu
+from tkinter import messagebox
 
 def create_menu(self):
     '''主菜单'''
@@ -10,10 +12,17 @@ def create_menu(self):
     self.choose_difficulty_menu = Menu(self.main_menu, tearoff=False)
 
     # 难度子菜单
-    self.choose_difficulty_menu.add_command(label="初级", command=self.run_junior)
-    self.choose_difficulty_menu.add_command(label="中级", command=self.run_mediate)
-    self.choose_difficulty_menu.add_command(label="高级", command=self.run_advanced)
+    if self.is_login == 1:
+        self.choose_difficulty_menu.add_command(label="初级", command=self.run_junior)
+        self.choose_difficulty_menu.add_command(label="中级", command=self.run_mediate)
+        self.choose_difficulty_menu.add_command(label="高级", command=self.run_advanced)
+        self.main_menu.add_cascade(label="选择难度", menu=self.choose_difficulty_menu)
+    else :
+        self.choose_difficulty_menu.add_command(label="初级", command=warn)
+        self.choose_difficulty_menu.add_command(label="中级", command=warn)
+        self.choose_difficulty_menu.add_command(label="高级", command=warn)
     self.main_menu.add_cascade(label="选择难度", menu=self.choose_difficulty_menu)
+
 
     # 排行榜子菜单
     self.rank_menu.add_command(label="初级排行榜", command=self.junior_window)
@@ -23,3 +32,6 @@ def create_menu(self):
     
     # 显示主菜单
     self.root.config(menu=self.main_menu)
+
+def warn():
+    messagebox.showwarning("登录选择难度")

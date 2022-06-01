@@ -62,6 +62,9 @@ class FlipCardByMemoryGame():
         # 显示游戏时间
         self.num_seconds = 0
         self.time = ''
+        # 用户是否登录
+        self.is_login = 0
+
 
     def create_login_window(self):
         '''创建登录窗口'''
@@ -92,6 +95,7 @@ class FlipCardByMemoryGame():
 
         # login窗口刷新，获取用户输入
         self.login_window.update()
+        
 
         # 窗口显示位置
         self.login_window.withdraw()
@@ -363,6 +367,8 @@ class FlipCardByMemoryGame():
         '''
         if 0 < len(self.entry.get()) <= 8:
             self.input_name = self.entry.get()
+            # 用户是否登录flag设置成登录状态 （0：未登录， 1： 登录）
+            self.is_login = 1
             self.run_junior()
             return True
         else:
